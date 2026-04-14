@@ -13,7 +13,7 @@ public class ProductSpecification {
     }
     public static Specification<Product> hasMaxPrice(BigDecimal maxPrice){
         return (root,query,cb) ->
-                cb.greaterThanOrEqualTo(root.get("price"),maxPrice);
+                cb.lessThanOrEqualTo(root.get("price"),maxPrice);
     }
 
     public static Specification<Product> hasBrand(String brand){
@@ -29,4 +29,13 @@ public class ProductSpecification {
         return (root, query, cb) ->
                 cb.greaterThan(root.get("stock"), stock);
     }
+
+
+    //TODO DESCOMENTAR ESTO CUANDO HAGA LA ENTIDAD CATEGORIA
+//    public static Specification<Product> hasCategorySlug(String slug) {
+//        return (root, query, cb) -> {
+//            Join<Product, Category> category = root.join("category");
+//            return cb.equal(category.get("slug"), slug);
+//        };
+//    }
 }
