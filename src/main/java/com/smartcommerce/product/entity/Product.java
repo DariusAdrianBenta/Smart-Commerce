@@ -1,10 +1,14 @@
 package com.smartcommerce.product.entity;
 
+import com.smartcommerce.category.entity.Category;
+import com.smartcommerce.productimage.entity.ProductImage;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -38,14 +42,13 @@ public class Product {
 
     private LocalDateTime createdAt;
 
-// ? DESCOMENTAR   @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "category_id")
-//    private Category category;
+  @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
 
-// La relación está gestionada desde la entidad ProductImage.
-// ? DESCOMENTAR   @OneToMany(mappedBy = "product",cascade = CascadeType.ALL,orphanRemoval = true)
-//    private List<ProductImage> images = new ArrayList<>();
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images = new ArrayList<>();
 
 
 // Se ejecuta automáticamente antes de guardar en la base de datos.
