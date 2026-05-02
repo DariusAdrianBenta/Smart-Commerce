@@ -26,7 +26,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (request.getParentId() != null) {
 
             Category parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new RuntimeException("Parent category not found"));
+                    .orElseThrow(() -> new CategoryNotFoundException(request.getParentId()));
 
             category.setParent(parent);
         }
@@ -47,13 +47,56 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponseDTO updateCategory(Long id, UpdateCategoryRequest request) {
-        return null;
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException(id));;
+
+
+        if (request.getName() != null) {
+            category.setName(request.getName());
+        }
+
+        if (request.getParentId() != null) {
+
+            if (request.getParentId().equals(id)) {
+                throw new IllegalStateException("Una categoría no puede ser su propio padre");
+            }
+
+            Category parent = categoryRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new CategoryNotFoundException(request.getParentId()));
+
+            validateNoCycle(category, parent);
+
+            category.setParent(parent);
+
+        } else {
+
+            category.setParent(null);
+        }
+
+        Category updatedCategory = categoryRepository.save(category);
+
+        return categoryMapper.toDTO(updatedCategory);
+    }
+    private void validateNoCycle(Category category, Category newParent) {
+
+        Category current = newParent;
+
+        while (current != null) {
+            if (current.getId().equals(category.getId())) {
+                throw new IllegalStateException("No se puede crear un ciclo en la jerarquía de categorías");
+            }
+            current = current.getParent();
+        }
     }
 
     @Override
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
+        if (categoryRepository.existsByParentAndActiveTrue(category)) {
+            throw new RuntimeException("No puedes eliminar una categoría con subcategorías activas");
+        }
 
         category.setActive(false);
 
@@ -63,11 +106,35 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryResponseDTO> getRootCategories() {
-        return List.of();
+        List<Category> categories = categoryRepository.findByParentIsNullAndActiveTrue();
+
+        return categories.stream()
+                .map(categoryMapper::toDTO)
+                .toList();
     }
 
     @Override
     public List<CategoryResponseDTO> getChildren(Long parentId) {
-        return List.of();
+
+        Category parent = categoryRepository.findById(parentId)
+                .orElseThrow(() -> new CategoryNotFoundException(parentId));
+
+
+        List<Category> children = categoryRepository.findByParentAndActiveTrue(parent);
+
+
+        return children.stream()
+                .map(categoryMapper::toDTO)
+                .toList();
+    }
+
+    @Override
+    public List<CategoryResponseDTO> getAllCategoriesForAdmin() {
+
+        List<Category> categories = categoryRepository.findAll();
+
+        return categories.stream()
+                .map(categoryMapper::toDTO)
+                .toList();
     }
 }

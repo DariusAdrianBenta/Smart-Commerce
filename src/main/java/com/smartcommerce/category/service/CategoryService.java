@@ -20,4 +20,6 @@ public interface CategoryService {
     List<CategoryResponseDTO> getRootCategories();
 
     List<CategoryResponseDTO> getChildren(Long parentId);
+
+    List<CategoryResponseDTO> getAllCategoriesForAdmin();
 }
