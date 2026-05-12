@@ -2,11 +2,13 @@ package com.smartcommerce.security;
 
 import com.smartcommerce.user.entity.Role;
 import com.smartcommerce.user.entity.User;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtServiceTest {
 
@@ -16,9 +18,10 @@ class JwtServiceTest {
     @BeforeEach
     void setUp() {
         jwtService = new JwtService();
-        ReflectionTestUtils.setField(jwtService, "secretKey",
+        ReflectionTestUtils.setField(jwtService, "secretKeyString",
                 "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970");
         ReflectionTestUtils.setField(jwtService, "expirationMs", 3600000L);
+        jwtService.init();
 
         testUser = User.builder()
                 .id(1L)
@@ -53,5 +56,21 @@ class JwtServiceTest {
         String token = jwtService.generateToken(testUser);
         User otherUser = User.builder().email("other@test.com").active(true).role(Role.USER).build();
         assertThat(jwtService.isTokenValid(token, otherUser)).isFalse();
+    }
+
+    @Test
+    void extractClaims_withExpiredToken_shouldThrowJwtException() {
+        ReflectionTestUtils.setField(jwtService, "expirationMs", -1000L);
+        String expiredToken = jwtService.generateToken(testUser);
+        assertThatThrownBy(() -> jwtService.extractClaims(expiredToken))
+                .isInstanceOf(JwtException.class);
+    }
+
+    @Test
+    void extractClaims_withTamperedToken_shouldThrowJwtException() {
+        String token = jwtService.generateToken(testUser);
+        String tamperedToken = token.substring(0, token.length() - 5) + "XXXXX";
+        assertThatThrownBy(() -> jwtService.extractClaims(tamperedToken))
+                .isInstanceOf(JwtException.class);
     }
 }
