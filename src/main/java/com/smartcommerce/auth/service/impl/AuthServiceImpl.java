@@ -5,11 +5,13 @@ import com.smartcommerce.auth.dto.request.RegisterRequest;
 import com.smartcommerce.auth.dto.response.AuthResponse;
 import com.smartcommerce.auth.service.AuthService;
 import com.smartcommerce.exception.EmailAlreadyExistsException;
+import com.smartcommerce.exception.UserNotFoundException;
 import com.smartcommerce.security.JwtService;
 import com.smartcommerce.user.entity.Role;
 import com.smartcommerce.user.entity.User;
 import com.smartcommerce.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +25,9 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+
+    @Value("${jwt.expiration}")
+    private long jwtExpirationMs;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -46,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponse.builder()
                 .token(token)
-                .expiresIn(3600)
+                .expiresIn(jwtExpirationMs / 1000)
                 .userId(saved.getId())
                 .email(saved.getEmail())
                 .role(saved.getRole().name())
@@ -59,13 +64,13 @@ public class AuthServiceImpl implements AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+                .orElseThrow(() -> new UserNotFoundException(request.getEmail()));
 
         String token = jwtService.generateToken(user);
 
         return AuthResponse.builder()
                 .token(token)
-                .expiresIn(3600)
+                .expiresIn(jwtExpirationMs / 1000)
                 .userId(user.getId())
                 .email(user.getEmail())
                 .role(user.getRole().name())

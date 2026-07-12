@@ -3,16 +3,11 @@ package com.smartcommerce.category.controller;
 import com.smartcommerce.category.dto.request.CreateCategoryRequest;
 import com.smartcommerce.category.dto.request.UpdateCategoryRequest;
 import com.smartcommerce.category.dto.response.CategoryResponseDTO;
-import com.smartcommerce.category.entity.Category;
 import com.smartcommerce.category.service.CategoryService;
-import com.smartcommerce.product.dto.request.CreateProductRequest;
-import com.smartcommerce.product.dto.request.ProductFilterDTO;
-import com.smartcommerce.product.dto.response.ProductResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,17 +35,20 @@ public class CategoryController {
     }
 
     @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CategoryResponseDTO>> getAllCategoriesForAdmin() {
         return ResponseEntity.ok(categoryService.getAllCategoriesForAdmin());
     }
 
     @PostMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponseDTO> createCategory(
             @Valid @RequestBody CreateCategoryRequest request) {
         return ResponseEntity.ok(categoryService.createCategory(request));
     }
 
     @PutMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponseDTO> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody UpdateCategoryRequest request) {
@@ -58,6 +56,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
