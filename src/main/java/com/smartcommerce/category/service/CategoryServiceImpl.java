@@ -95,7 +95,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
         if (categoryRepository.existsByParentAndActiveTrue(category)) {
-            throw new RuntimeException("No puedes eliminar una categoría con subcategorías activas");
+            throw new IllegalStateException("No puedes eliminar una categoría con subcategorías activas");
         }
 
         category.setActive(false);
