@@ -6,11 +6,11 @@ import com.smartcommerce.category.dto.response.CategoryResponseDTO;
 import com.smartcommerce.category.entity.Category;
 import com.smartcommerce.category.mapper.CategoryMapper;
 import com.smartcommerce.category.repository.CategoryRepository;
+import com.smartcommerce.common.SlugUtils;
 import com.smartcommerce.exception.CategoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.text.Normalizer;
 import java.util.List;
 @RequiredArgsConstructor
 @Service
@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category category = categoryMapper.toEntity(request);
         // El request no trae slug ni active: se generan aquí.
-        category.setSlug(generateSlug(request.getName()));
+        category.setSlug(SlugUtils.toSlug(request.getName()));
         category.setActive(true);
 
         if (request.getParentId() != null) {
@@ -140,17 +140,5 @@ public class CategoryServiceImpl implements CategoryService {
         return categories.stream()
                 .map(categoryMapper::toDTO)
                 .toList();
-    }
-
-    // Genera un slug URL-friendly a partir del nombre:
-    // "Electrónica" -> "electronica", "Ropa de Hombre" -> "ropa-de-hombre".
-    private String generateSlug(String name) {
-        String normalized = Normalizer
-                .normalize(name, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");        // quita acentos
-        return normalized.toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "")  // quita símbolos
-                .trim()
-                .replaceAll("\\s+", "-");         // espacios -> guiones
     }
 }
