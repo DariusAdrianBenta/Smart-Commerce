@@ -67,7 +67,10 @@ export default function Cart() {
     });
   };
 
-  const items = cart?.items ?? [];
+  // Orden estable por productId: así las filas nunca se recolocan al actualizar,
+  // aunque el backend devuelva los items en otro orden. Evita que un clic rápido
+  // caiga sobre el producto equivocado.
+  const items = [...(cart?.items ?? [])].sort((a, b) => a.productId - b.productId);
   const allSelected = items.length > 0 && selected.size === items.length;
 
   const toggleAll = () => {
