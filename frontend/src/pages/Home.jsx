@@ -3,6 +3,7 @@ import { productService } from "../services/productService";
 import { categoryService } from "../services/categoryService";
 import { useDebounce } from "../hooks/useDebounce";
 import ProductCard from "../components/ProductCard";
+import PriceRangeSlider from "../components/PriceRangeSlider";
 import Spinner from "../components/Spinner";
 import EmptyState from "../components/EmptyState";
 
@@ -28,6 +29,13 @@ export default function Home() {
   const [sort, setSort] = useState("");
   const [page, setPage] = useState(0);
 
+  // Rango de precio: bounds = tope del catálogo; priceRange = selección actual.
+  const [bounds, setBounds] = useState(null); // { min, max }
+  const [priceRange, setPriceRange] = useState(null); // [lo, hi]
+  // Debounceamos una cadena "lo-hi" (useDebounce reacciona por valor, no por array).
+  const priceKey = priceRange ? `${priceRange[0]}-${priceRange[1]}` : "";
+  const debouncedPriceKey = useDebounce(priceKey, 350);
+
   const [categories, setCategories] = useState([]);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,10 +46,26 @@ export default function Home() {
     categoryService.getRoot().then(setCategories).catch(() => {});
   }, []);
 
+  // Tope del slider: el producto más caro del catálogo, redondeado a la decena.
+  useEffect(() => {
+    productService
+      .getAll({ sort: "price,desc", size: 1 })
+      .then((d) => {
+        const top = d.content?.[0]?.price ?? 100;
+        const max = Math.max(10, Math.ceil(top / 10) * 10);
+        setBounds({ min: 0, max });
+        setPriceRange([0, max]);
+      })
+      .catch(() => {
+        setBounds({ min: 0, max: 100 });
+        setPriceRange([0, 100]);
+      });
+  }, []);
+
   // Al cambiar cualquier filtro, volvemos a la primera página.
   useEffect(() => {
     setPage(0);
-  }, [debouncedSearch, categoryId, sort]);
+  }, [debouncedSearch, categoryId, sort, debouncedPriceKey]);
 
   // Carga de productos según filtros + página (useEffect = efecto secundario).
   useEffect(() => {
@@ -52,12 +76,19 @@ export default function Home() {
     if (categoryId) params.categoryId = categoryId;
     if (sort) params.sort = sort;
 
+    // Solo mandamos minPrice/maxPrice si el usuario ha estrechado el rango.
+    if (bounds && debouncedPriceKey) {
+      const [lo, hi] = debouncedPriceKey.split("-").map(Number);
+      if (lo > bounds.min) params.minPrice = lo;
+      if (hi < bounds.max) params.maxPrice = hi;
+    }
+
     productService
       .getAll(params)
       .then(setData)
       .catch(() => setError("No se pudieron cargar los productos."))
       .finally(() => setLoading(false));
-  }, [debouncedSearch, categoryId, sort, page]);
+  }, [debouncedSearch, categoryId, sort, page, debouncedPriceKey, bounds]);
 
   return (
     <div className="p-8">
@@ -74,18 +105,28 @@ export default function Home() {
         />
       </div>
 
-      {/* Filtros: categorías + orden */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => setCategoryId(null)} className={chipClass(categoryId === null)}>
-            Todas
+      {/* Filtros: categorías */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button onClick={() => setCategoryId(null)} className={chipClass(categoryId === null)}>
+          Todas
+        </button>
+        {categories.map((c) => (
+          <button key={c.id} onClick={() => setCategoryId(c.id)} className={chipClass(categoryId === c.id)}>
+            {c.name}
           </button>
-          {categories.map((c) => (
-            <button key={c.id} onClick={() => setCategoryId(c.id)} className={chipClass(categoryId === c.id)}>
-              {c.name}
-            </button>
-          ))}
-        </div>
+        ))}
+      </div>
+
+      {/* Precio (slider de rango) + orden */}
+      <div className="mt-5 flex flex-wrap items-end justify-between gap-6">
+        {bounds && priceRange && (
+          <PriceRangeSlider
+            min={bounds.min}
+            max={bounds.max}
+            value={priceRange}
+            onChange={setPriceRange}
+          />
+        )}
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
