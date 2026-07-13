@@ -3,7 +3,6 @@ import { useAuth } from "../hooks/useAuth";
 
 const links = [
   { to: "/", label: "Inicio", end: true },
-  { to: "/products", label: "Productos" },
   { to: "/favorites", label: "Mis Favoritos" },
   { to: "/cart", label: "Carrito" },
   { to: "/settings", label: "Configuración" },
