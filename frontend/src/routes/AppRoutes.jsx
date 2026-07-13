@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login";
+import Register from "../pages/Register";
 import Home from "../pages/Home";
 import Favorites from "../pages/Favorites";
 import MainLayout from "../layouts/MainLayout";
@@ -10,6 +11,7 @@ export default function AppRoutes() {
     <Routes>
       {/* Rutas públicas */}
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
       {/* Rutas privadas: envueltas en ProtectedRoute + layout con menú lateral */}
       <Route
