@@ -6,6 +6,14 @@ import Input from "../components/Input";
 import PasswordInput from "../components/PasswordInput";
 import Button from "../components/Button";
 
+// Cuentas de prueba para el demo. Al hacer clic autocompletan el formulario,
+// para comprobar el contenido personalizado de cada usuario (admin vs usuario).
+const demoAccounts = [
+  { label: "Admin", email: "admin@smartcommerce.com", password: "Admin1234!" },
+  { label: "Usuario 1", email: "laura.gomez@example.com", password: "SmartUser2026!" },
+  { label: "Usuario 2", email: "carlos.ruiz@example.com", password: "SmartUser2026!" },
+];
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,6 +89,28 @@ export default function Login() {
           Regístrate
         </Link>
       </p>
+
+      {/* Cuentas de prueba (demo): rellenan el formulario al pulsar */}
+      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Cuentas de prueba
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {demoAccounts.map((acc) => (
+            <button
+              key={acc.email}
+              type="button"
+              onClick={() => {
+                setEmail(acc.email);
+                setPassword(acc.password);
+              }}
+              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-brand hover:text-brand-dark"
+            >
+              {acc.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </AuthLayout>
   );
 }
