@@ -15,19 +15,66 @@
 - **Estilos solo con Tailwind CSS.**
 - **Regla de acceso a datos:** un componente NUNCA importa axios directamente. Flujo obligatorio: **componente → service → `axiosClient`**.
 - **Carga de datos:** `useState` + `useEffect` con los tres estados (loading / error / datos).
-- **Conexión con el back:** el front llama a rutas relativas `/api/...`; el proxy de Vite las redirige a `http://localhost:8080`.
-- **Backend:** debe estar arrancado en `:8080` con PostgreSQL levantado (`docker-compose up -d` en la carpeta `smartcommerce`) para las verificaciones que tocan la API. Usuario admin sembrado: `admin@smartcommerce.com` / `Admin1234!`.
-- **Ubicación:** todo el frontend vive en `C:\Users\dariu\Desktop\SmartCommerce\frontend\`.
+- **Conexión con el back (CORS):** el front llama **directamente** al backend usando la URL base `import.meta.env.VITE_API_URL` (por defecto `http://localhost:8080/api/v1`). El backend autoriza el origen del front mediante **CORS** en `SecurityConfig` (ver Prerrequisito).
+- **Backend:** debe estar arrancado en `:8080` con PostgreSQL levantado (`docker compose up -d` en la carpeta `smartcommerce`) para las verificaciones que tocan la API. Usuario admin sembrado: `admin@smartcommerce.com` / `Admin1234!`.
+- **Ubicación:** todo el frontend vive en `C:\Users\dariu\Desktop\SmartCommerce\smartcommerce\frontend\`.
+
+---
+
+## Prerrequisito (backend): habilitar CORS
+
+Para que el frontend (origen `http://localhost:5173`) pueda llamar al backend
+(`:8080`), hay que habilitar CORS en `SecurityConfig`. Es un cambio de backend,
+así que se hace en una rama de backend (no en la del frontend).
+
+**Files:**
+- Modify: `src/main/java/com/smartcommerce/security/SecurityConfig.java`
+
+- [ ] **Paso 1: Activar CORS en la cadena de filtros** — dentro de `securityFilterChain`, añadir al principio de la configuración de `http`:
+
+```java
+.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+```
+
+- [ ] **Paso 2: Definir el bean `CorsConfigurationSource`**:
+
+```java
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of("http://localhost:5173"));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("*"));
+    // Con JWT en la cabecera Authorization no se usan cookies, así que
+    // no es necesario setAllowCredentials(true).
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}
+```
+
+Imports: `org.springframework.web.cors.CorsConfiguration`,
+`org.springframework.web.cors.CorsConfigurationSource`,
+`org.springframework.web.cors.UrlBasedCorsConfigurationSource`,
+`java.util.List`.
+
+> Mejora futura: externalizar los orígenes permitidos a una propiedad
+> (`app.cors.allowed-origins`) para que en Docker/producción sean configurables
+> sin recompilar.
+
+- [ ] **Paso 3: Verificar** — con backend y front arrancados, una petición del
+  front al `:8080` no debe ser bloqueada por el navegador (sin errores de CORS
+  en consola).
 
 ---
 
 ## Tarea 1: Base del proyecto (scaffold)
 
-**Deliverable:** una app React en blanco que arranca con `npm run dev`, con Tailwind funcionando, la estructura de carpetas creada, el proxy configurado y git inicializado.
+**Deliverable:** una app React en blanco que arranca con `npm run dev`, con Tailwind funcionando, la estructura de carpetas creada, la URL de la API configurada (`.env`) y git inicializado.
 
 **Files:**
 - Create: `frontend/` (proyecto Vite completo)
-- Create: `frontend/vite.config.js` (proxy `/api` → `:8080`)
+- Create: `frontend/.env` (variable `VITE_API_URL`)
 - Create: `frontend/tailwind.config.js`, `frontend/postcss.config.js`
 - Modify: `frontend/src/index.css` (directivas de Tailwind)
 - Create: estructura de carpetas en `frontend/src/` (`api`, `services`, `context`, `hooks`, `components`, `pages`, `layouts`, `routes`, `utils`)
@@ -69,24 +116,13 @@ export default {
 @tailwind utilities;
 ```
 
-- [ ] **Paso 5: Configurar el proxy** — `frontend/vite.config.js`:
+- [ ] **Paso 5: Configurar la URL del backend** — crear `frontend/.env`:
 
-```js
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
-      },
-    },
-  },
-});
 ```
+VITE_API_URL=http://localhost:8080/api/v1
+```
+
+*(Vite expone al frontend las variables que empiezan por `VITE_`. `axiosClient` la usará como URL base, con un valor por defecto si la variable no existe. Con CORS ya no se necesita el `server.proxy` en `vite.config.js`.)*
 
 - [ ] **Paso 6: Crear la estructura de carpetas**
 
@@ -118,7 +154,7 @@ Esperado: en `http://localhost:5173` se ve "SmartCommerce funcionando" en azul, 
 cd /c/Users/dariu/Desktop/SmartCommerce/frontend
 git init
 git add -A
-git commit -m "chore: scaffold React+Vite+Tailwind con proxy y estructura por capas"
+git commit -m "chore: scaffold React+Vite+Tailwind con estructura por capas"
 ```
 
 *(Vite ya genera un `.gitignore` que excluye `node_modules`.)*
@@ -155,7 +191,8 @@ git commit -m "chore: scaffold React+Vite+Tailwind con proxy y estructura por ca
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "/api/v1",
+  // URL base del backend, configurable por entorno (CORS habilitado en el back).
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1",
   headers: { "Content-Type": "application/json" },
 });
 

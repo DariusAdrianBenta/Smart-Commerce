@@ -35,6 +35,7 @@ Cada elección se documenta con su motivo.
 | **React Router** | Enrutado estándar del lado del cliente para SPAs en React; habilita la navegación entre vistas sin recargar la página. |
 | **axios con instancia única + interceptores** | Centraliza la configuración HTTP, la inyección del token JWT y el manejo global de errores en un único punto. |
 | **useState / useEffect para el estado de datos** | Modelo nativo de React, sin dependencias adicionales; suficiente para el alcance actual. |
+| **CORS en el backend** (en lugar de proxy de Vite) | Autoriza explícitamente el origen del frontend; es el mecanismo estándar, funciona en todos los entornos (dev, Docker, producción) y desacopla el cliente vía URL configurable. |
 
 **Fuera de alcance en esta iteración (YAGNI):** TypeScript, gestores de estado global (Redux, Zustand), React Query, librerías de formularios/validación (React Hook Form, Zod), renderizado en servidor (Next.js) y pruebas automatizadas de frontend. Se contemplan como posibles evoluciones, no como parte de la entrega inicial.
 
@@ -42,10 +43,11 @@ Cada elección se documenta con su motivo.
 
 ## 3. Ubicación y conexión con el backend
 
-- El frontend reside en una carpeta independiente **`frontend/`**, hermana del backend (`smartcommerce/`), manteniendo ambos proyectos desacoplados dentro del mismo repositorio.
+- El frontend reside en **`smartcommerce/frontend/`**, dentro del mismo repositorio que el backend (**monorepo**), lo que facilita orquestar ambos con Docker.
 - En desarrollo: frontend servido por Vite (`:5173`), backend en Spring Boot (`:8080`).
-- **Conexión mediante proxy de desarrollo de Vite:** el frontend realiza peticiones a rutas relativas `/api/...` que Vite redirige a `http://localhost:8080`. Esto evita problemas de CORS sin modificar el backend y desacopla el cliente de la URL concreta del servidor.
-  - *Alternativa considerada:* configurar CORS en Spring Security. Se opta por el proxy por simplicidad en desarrollo; la configuración CORS será necesaria en un despliegue con dominios separados.
+- **Conexión mediante CORS:** el frontend llama directamente al backend (`http://localhost:8080/api/v1`) y el backend autoriza explícitamente el origen del frontend configurando **CORS en Spring Security** (orígenes, métodos y cabeceras permitidos, incluida `Authorization` para el JWT).
+  - La URL base del backend se lee de una variable de entorno (`VITE_API_URL`), de modo que sea configurable entre entornos (desarrollo, Docker, producción) sin tocar el código.
+  - *Alternativa considerada:* proxy de desarrollo de Vite. Se descarta porque solo funciona en desarrollo; **CORS es el mecanismo estándar**, funciona igual en todos los entornos y es una configuración de seguridad relevante.
 
 ---
 
