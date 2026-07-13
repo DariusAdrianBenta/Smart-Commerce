@@ -4,6 +4,7 @@ import Register from "../pages/Register";
 import Home from "../pages/Home";
 import ProductDetail from "../pages/ProductDetail";
 import Favorites from "../pages/Favorites";
+import Cart from "../pages/Cart";
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -25,7 +26,8 @@ export default function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/favorites" element={<Favorites />} />
-        {/* Carrito y configuración se añaden en tareas siguientes */}
+        <Route path="/cart" element={<Cart />} />
+        {/* Configuración se añade en tareas siguientes */}
       </Route>
     </Routes>
   );
