@@ -25,6 +25,7 @@ public class Cart {
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC") // orden estable de los items entre respuestas (evita que las filas se recoloquen en el frontend)
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
 }
