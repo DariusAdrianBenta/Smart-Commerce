@@ -14,4 +14,5 @@ public class ProductFilterDTO {
     private BigDecimal maxPrice;
     private String brand;
     private String name;
+    private Long categoryId;
 }
