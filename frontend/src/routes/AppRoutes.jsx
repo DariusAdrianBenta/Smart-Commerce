@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Home from "../pages/Home";
+import ProductDetail from "../pages/ProductDetail";
 import Favorites from "../pages/Favorites";
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
@@ -22,8 +23,9 @@ export default function AppRoutes() {
         }
       >
         <Route path="/" element={<Home />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/favorites" element={<Favorites />} />
-        {/* Productos, detalle, carrito y configuración se añaden en tareas siguientes */}
+        {/* Carrito y configuración se añaden en tareas siguientes */}
       </Route>
     </Routes>
   );
