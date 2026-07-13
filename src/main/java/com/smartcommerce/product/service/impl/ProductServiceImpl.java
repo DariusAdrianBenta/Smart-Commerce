@@ -83,6 +83,10 @@ public class ProductServiceImpl implements ProductService {
             spec = spec.and(ProductSpecification.nameContains(filter.getName()));
         }
 
+        if (filter.getCategoryId() != null) {
+            spec = spec.and(ProductSpecification.hasCategory(filter.getCategoryId()));
+        }
+
         Page<Product> productPage = productRepository.findAll(spec, pageable);
 
         return productPage.map(productMapper::toDTO);
