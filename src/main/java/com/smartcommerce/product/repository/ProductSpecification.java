@@ -30,12 +30,8 @@ public class ProductSpecification {
                 cb.greaterThan(root.get("stock"), stock);
     }
 
-
-    //TODO DESCOMENTAR ESTO CUANDO HAGA LA ENTIDAD CATEGORIA
-//    public static Specification<Product> hasCategorySlug(String slug) {
-//        return (root, query, cb) -> {
-//            Join<Product, Category> category = root.join("category");
-//            return cb.equal(category.get("slug"), slug);
-//        };
-//    }
+    public static Specification<Product> hasCategory(Long categoryId) {
+        return (root, query, cb) ->
+                cb.equal(root.get("category").get("id"), categoryId);
+    }
 }
