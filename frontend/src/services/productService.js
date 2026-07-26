@@ -19,4 +19,14 @@ export const productService = {
 
   // Borrado lógico de un producto (solo ADMIN). Responde 204 sin cuerpo.
   remove: (id) => axiosClient.delete(`/admin/products/${id}`),
+
+  // Todos los productos incluidos los ocultos (solo ADMIN), para la tabla de gestión.
+  getAllForAdmin: () =>
+    axiosClient.get("/admin/products").then((res) => res.data),
+
+  // Cambia la visibilidad de un producto (solo ADMIN). visible=false lo oculta.
+  setVisibility: (id, visible) =>
+    axiosClient
+      .patch(`/admin/products/${id}/visibility`, { visible })
+      .then((res) => res.data),
 };

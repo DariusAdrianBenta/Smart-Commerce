@@ -12,4 +12,15 @@ export const categoryService = {
   // Crea una categoría (solo ADMIN). payload: { name, parentId? }.
   create: (payload) =>
     axiosClient.post("/categories/admin", payload).then((res) => res.data),
+
+  // Cambia la visibilidad de una categoría (solo ADMIN). visible=false la oculta
+  // en cascada (también sus productos).
+  setVisibility: (id, visible) =>
+    axiosClient
+      .patch(`/categories/admin/${id}/visibility`, { visible })
+      .then((res) => res.data),
+
+  // Actualiza una categoría (solo ADMIN). payload: { name, parentId? }.
+  update: (id, payload) =>
+    axiosClient.put(`/categories/admin/${id}`, payload).then((res) => res.data),
 };

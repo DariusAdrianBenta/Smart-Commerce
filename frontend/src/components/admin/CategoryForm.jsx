@@ -4,45 +4,61 @@ import Field, { fieldClass } from "./Field";
 import FormFeedback from "./FormFeedback";
 import Button from "../Button";
 
-// Formulario de creación de categoría.
+// Formulario de creación / edición de categoría.
 // props:
 //   categories -> lista para el desplegable de "categoría padre"
-//   onCreated  -> callback tras crear (para refrescar la lista en la página)
-export default function CategoryForm({ categories, onCreated }) {
-  const [name, setName] = useState("");
-  const [parentId, setParentId] = useState("");
+//   category   -> si viene, el formulario está en MODO EDICIÓN (PUT)
+//   onSuccess  -> callback tras crear/editar con éxito
+export default function CategoryForm({ categories, category, onSuccess }) {
+  const isEdit = Boolean(category);
+
+  const [name, setName] = useState(category?.name ?? "");
+  const [parentId, setParentId] = useState(
+    category?.parentId != null ? String(category.parentId) : ""
+  );
   const [status, setStatus] = useState(null); // { type, message }
   const [submitting, setSubmitting] = useState(false);
+
+  // En edición, una categoría no puede ser su propio padre: la excluimos.
+  const parentOptions = categories.filter((c) => c.id !== category?.id);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus(null);
 
-    // Validación en cliente: el nombre es obligatorio.
     if (!name.trim()) {
       setStatus({ type: "error", message: "El nombre es obligatorio." });
       return;
     }
 
-    // Construimos el payload; parentId solo se envía si se ha elegido uno.
+    // parentId se envía solo si se ha elegido uno. Al editar, reenviarlo
+    // conserva el padre (el PUT lo pone a raíz si se omite).
     const payload = { name: name.trim() };
     if (parentId) payload.parentId = Number(parentId);
 
     setSubmitting(true);
     try {
-      const created = await categoryService.create(payload);
-      setStatus({ type: "success", message: "Categoría creada correctamente." });
-      setName("");
-      setParentId("");
-      onCreated?.(created);
+      const saved = isEdit
+        ? await categoryService.update(category.id, payload)
+        : await categoryService.create(payload);
+      setStatus({
+        type: "success",
+        message: isEdit
+          ? "Categoría actualizada correctamente."
+          : "Categoría creada correctamente.",
+      });
+      if (!isEdit) {
+        setName("");
+        setParentId("");
+      }
+      onSuccess?.(saved);
     } catch (err) {
-      // El backend responde con { timestamp, status, message }.
       const msg = err.response?.data?.message;
       setStatus({
         type: "error",
-        message: `Ha habido un problema al crear la categoría: ${
-          msg || "inténtalo de nuevo."
-        }`,
+        message: `Ha habido un problema al ${
+          isEdit ? "actualizar" : "crear"
+        } la categoría: ${msg || "inténtalo de nuevo."}`,
       });
     } finally {
       setSubmitting(false);
@@ -71,7 +87,7 @@ export default function CategoryForm({ categories, onCreated }) {
           onChange={(e) => setParentId(e.target.value)}
         >
           <option value="">Ninguna (categoría raíz)</option>
-          {categories.map((c) => (
+          {parentOptions.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
@@ -80,7 +96,11 @@ export default function CategoryForm({ categories, onCreated }) {
       </Field>
 
       <Button type="submit" disabled={submitting}>
-        {submitting ? "Creando…" : "Crear categoría"}
+        {submitting
+          ? "Guardando…"
+          : isEdit
+          ? "Guardar cambios"
+          : "Crear categoría"}
       </Button>
     </form>
   );
