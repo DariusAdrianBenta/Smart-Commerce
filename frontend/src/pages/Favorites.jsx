@@ -9,6 +9,8 @@ export default function Favorites() {
   const { favoriteIds } = useWishlist();
   const [products, setProducts] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Se incrementa tras borrar/editar un producto (admin) para forzar recarga.
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Recarga cuando cambian los favoritos (p. ej. al quitar uno desde aquí).
   useEffect(() => {
@@ -18,7 +20,7 @@ export default function Favorites() {
       .then(setProducts)
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
-  }, [favoriteIds]);
+  }, [favoriteIds, refreshKey]);
 
   return (
     <div className="p-8">
@@ -32,7 +34,11 @@ export default function Favorites() {
         ) : (
           <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onChanged={() => setRefreshKey((k) => k + 1)}
+              />
             ))}
           </div>
         )}

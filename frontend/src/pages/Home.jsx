@@ -40,6 +40,8 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Se incrementa tras borrar/editar un producto (admin) para forzar recarga.
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Categorías (una sola vez) para el filtro.
   useEffect(() => {
@@ -88,7 +90,7 @@ export default function Home() {
       .then(setData)
       .catch(() => setError("No se pudieron cargar los productos."))
       .finally(() => setLoading(false));
-  }, [debouncedSearch, categoryId, sort, page, debouncedPriceKey, bounds]);
+  }, [debouncedSearch, categoryId, sort, page, debouncedPriceKey, bounds, refreshKey]);
 
   return (
     <div className="p-8">
@@ -152,7 +154,11 @@ export default function Home() {
           <>
             <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
               {data.content.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onChanged={() => setRefreshKey((k) => k + 1)}
+                />
               ))}
             </div>
 

@@ -65,7 +65,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductResponseDTO> getAllProducts(ProductFilterDTO filter, Pageable pageable) {
 
-        Specification<Product> spec = (root, query, cb) -> cb.conjunction();
+        // Partimos excluyendo los productos deshabilitados (borrado lógico).
+        Specification<Product> spec = ProductSpecification.isNotDisabled();
 
         if (filter.getMinPrice() != null) {
             spec = spec.and(ProductSpecification.hasMinPrice(filter.getMinPrice()));
