@@ -167,6 +167,27 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
+    @Override
+    public List<ProductResponseDTO> getAllProductsForAdmin() {
+        return productRepository.findAll().stream()
+                .map(productMapper::toDTO)
+                .toList();
+    }
+
+    @Override
+    public ProductResponseDTO setProductVisibility(Long id, boolean visible) {
+        Product product = getProductOrThrow(id);
+        product.setHiddenByCategory(false);
+        if (visible) {
+            product.setStatus(product.getStock() != null && product.getStock() > 0
+                    ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK);
+        } else {
+            product.setStatus(ProductStatus.DISABLED);
+        }
+        Product saved = productRepository.save(product);
+        return productMapper.toDTO(saved);
+    }
+
     private void updateProductStatusBasedOnStock(Product product) {
         if (product.getStatus() == ProductStatus.DISABLED) {
             return;

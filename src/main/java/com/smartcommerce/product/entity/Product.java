@@ -38,6 +38,11 @@ public class Product {
     @Column(nullable = false)
     private ProductStatus status;
 
+    // true solo si el producto fue ocultado por la cascada de su categoría.
+    // Permite restaurar SOLO estos al volver a mostrar la categoría.
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hiddenByCategory = false;
+
     private String brand;
 
     private LocalDateTime createdAt;

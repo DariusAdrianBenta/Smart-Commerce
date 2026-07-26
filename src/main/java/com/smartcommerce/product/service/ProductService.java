@@ -20,4 +20,6 @@ public interface ProductService {
     ProductResponseDTO updateProduct(Long id, UpdateProductRequest request);
     void deleteProduct(Long id);
     void updateProductImages(Long id, ProductUpdateImagesRequest request);
+    List<ProductResponseDTO> getAllProductsForAdmin();
+    ProductResponseDTO setProductVisibility(Long id, boolean visible);
 }
