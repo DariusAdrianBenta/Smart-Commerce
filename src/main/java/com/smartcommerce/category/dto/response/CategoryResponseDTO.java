@@ -14,4 +14,6 @@ public class CategoryResponseDTO {
 
     private String parentName;
 
+    private boolean active;
+
 }

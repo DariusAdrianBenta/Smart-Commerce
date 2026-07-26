@@ -4,6 +4,7 @@ import com.smartcommerce.category.dto.request.CreateCategoryRequest;
 import com.smartcommerce.category.dto.request.UpdateCategoryRequest;
 import com.smartcommerce.category.dto.response.CategoryResponseDTO;
 import com.smartcommerce.category.service.CategoryService;
+import com.smartcommerce.common.dto.VisibilityRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +61,15 @@ public class CategoryController {
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/admin/{id}/visibility")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CategoryResponseDTO> setCategoryVisibility(
+            @PathVariable Long id,
+            @Valid @RequestBody VisibilityRequest request) {
+        return ResponseEntity.ok(
+                categoryService.setCategoryVisibility(id, request.getVisible()));
     }
 
 }

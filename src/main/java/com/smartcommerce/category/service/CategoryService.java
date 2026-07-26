@@ -22,4 +22,6 @@ public interface CategoryService {
     List<CategoryResponseDTO> getChildren(Long parentId);
 
     List<CategoryResponseDTO> getAllCategoriesForAdmin();
+
+    CategoryResponseDTO setCategoryVisibility(Long id, boolean visible);
 }
