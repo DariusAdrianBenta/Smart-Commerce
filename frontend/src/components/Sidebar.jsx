@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-const links = [
+const baseLinks = [
   { to: "/", label: "Inicio", end: true },
   { to: "/favorites", label: "Mis Favoritos" },
   { to: "/cart", label: "Carrito" },
@@ -11,6 +11,12 @@ const links = [
 // Menú lateral persistente (a la izquierda). NavLink resalta la vista activa.
 export default function Sidebar() {
   const { user, logout } = useAuth();
+
+  // El enlace de administración solo se muestra a usuarios con rol ADMIN.
+  const links =
+    user?.role === "ADMIN"
+      ? [...baseLinks, { to: "/admin", label: "Administración" }]
+      : baseLinks;
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-slate-200 bg-white p-6">
       <div className="mb-8 flex items-center gap-2">

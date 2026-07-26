@@ -59,13 +59,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO getProductById(Long id) {
         Product product = getProductOrThrow(id);
+        if (product.getStatus() == ProductStatus.DISABLED) {
+            throw new ProductNotFoundException(id);
+        }
         return productMapper.toDTO(product);
     }
 
     @Override
     public Page<ProductResponseDTO> getAllProducts(ProductFilterDTO filter, Pageable pageable) {
 
-        Specification<Product> spec = (root, query, cb) -> cb.conjunction();
+        // Partimos excluyendo los productos deshabilitados (borrado lógico).
+        Specification<Product> spec = ProductSpecification.isNotDisabled();
 
         if (filter.getMinPrice() != null) {
             spec = spec.and(ProductSpecification.hasMinPrice(filter.getMinPrice()));
@@ -164,6 +168,27 @@ public class ProductServiceImpl implements ProductService {
         product.getImages().addAll(newImages);
 
         productRepository.save(product);
+    }
+
+    @Override
+    public List<ProductResponseDTO> getAllProductsForAdmin() {
+        return productRepository.findAll().stream()
+                .map(productMapper::toDTO)
+                .toList();
+    }
+
+    @Override
+    public ProductResponseDTO setProductVisibility(Long id, boolean visible) {
+        Product product = getProductOrThrow(id);
+        product.setHiddenByCategory(false);
+        if (visible) {
+            product.setStatus(product.getStock() != null && product.getStock() > 0
+                    ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK);
+        } else {
+            product.setStatus(ProductStatus.DISABLED);
+        }
+        Product saved = productRepository.save(product);
+        return productMapper.toDTO(saved);
     }
 
     private void updateProductStatusBasedOnStock(Product product) {

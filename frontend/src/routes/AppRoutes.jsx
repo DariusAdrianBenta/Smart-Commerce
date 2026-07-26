@@ -5,8 +5,10 @@ import Home from "../pages/Home";
 import ProductDetail from "../pages/ProductDetail";
 import Favorites from "../pages/Favorites";
 import Cart from "../pages/Cart";
+import Admin from "../pages/Admin";
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRoute";
 
 export default function AppRoutes() {
   return (
@@ -27,6 +29,14 @@ export default function AppRoutes() {
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/cart" element={<Cart />} />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
+          }
+        />
         {/* Configuración se añade en tareas siguientes */}
       </Route>
     </Routes>

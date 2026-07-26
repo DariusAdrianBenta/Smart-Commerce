@@ -8,8 +8,12 @@ import com.smartcommerce.category.mapper.CategoryMapper;
 import com.smartcommerce.category.repository.CategoryRepository;
 import com.smartcommerce.common.SlugUtils;
 import com.smartcommerce.exception.CategoryNotFoundException;
+import com.smartcommerce.product.entity.Product;
+import com.smartcommerce.product.entity.ProductStatus;
+import com.smartcommerce.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 @RequiredArgsConstructor
@@ -17,6 +21,7 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final ProductRepository productRepository;
 
 
     @Override
@@ -140,5 +145,40 @@ public class CategoryServiceImpl implements CategoryService {
         return categories.stream()
                 .map(categoryMapper::toDTO)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public CategoryResponseDTO setCategoryVisibility(Long id, boolean visible) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException(id));
+
+        if (visible) {
+            category.setActive(true);
+            for (Product product : productRepository.findByCategory(category)) {
+                if (product.isHiddenByCategory()) {
+                    product.setHiddenByCategory(false);
+                    product.setStatus(product.getStock() != null && product.getStock() > 0
+                            ? ProductStatus.ACTIVE : ProductStatus.OUT_OF_STOCK);
+                    productRepository.save(product);
+                }
+            }
+        } else {
+            if (categoryRepository.existsByParentAndActiveTrue(category)) {
+                throw new IllegalStateException(
+                        "No puedes ocultar una categoría con subcategorías activas");
+            }
+            category.setActive(false);
+            for (Product product : productRepository.findByCategory(category)) {
+                if (product.getStatus() != ProductStatus.DISABLED) {
+                    product.setStatus(ProductStatus.DISABLED);
+                    product.setHiddenByCategory(true);
+                    productRepository.save(product);
+                }
+            }
+        }
+
+        Category saved = categoryRepository.save(category);
+        return categoryMapper.toDTO(saved);
     }
 }

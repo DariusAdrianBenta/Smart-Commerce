@@ -1,11 +1,18 @@
 package com.smartcommerce.product.repository;
 
 import com.smartcommerce.product.entity.Product;
+import com.smartcommerce.product.entity.ProductStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 
 public class ProductSpecification {
+
+    // Excluye los productos deshabilitados (borrado lógico) del catálogo público.
+    public static Specification<Product> isNotDisabled() {
+        return (root, query, cb) ->
+                cb.notEqual(root.get("status"), ProductStatus.DISABLED);
+    }
 
     public static Specification<Product> hasMinPrice(BigDecimal minPrice){
         return (root,query,cb) ->

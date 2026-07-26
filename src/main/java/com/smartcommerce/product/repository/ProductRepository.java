@@ -1,5 +1,6 @@
 package com.smartcommerce.product.repository;
 
+import com.smartcommerce.category.entity.Category;
 import com.smartcommerce.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -11,4 +12,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> , JpaSpec
 
     // Usado por el seeder de catálogo para no crear productos duplicados.
     boolean existsByName(String name);
+
+    // Usado por la cascada de visibilidad de categoría.
+    List<Product> findByCategory(Category category);
 }

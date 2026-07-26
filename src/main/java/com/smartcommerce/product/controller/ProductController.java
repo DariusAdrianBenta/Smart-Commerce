@@ -1,5 +1,6 @@
 package com.smartcommerce.product.controller;
 
+import com.smartcommerce.common.dto.VisibilityRequest;
 import com.smartcommerce.product.dto.request.CreateProductRequest;
 import com.smartcommerce.product.dto.request.ProductFilterDTO;
 import com.smartcommerce.product.dto.request.ProductUpdateImagesRequest;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -58,5 +61,17 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/admin/products")
+    public ResponseEntity<List<ProductResponseDTO>> getAllProductsForAdmin() {
+        return ResponseEntity.ok(productService.getAllProductsForAdmin());
+    }
+
+    @PatchMapping("/admin/products/{id}/visibility")
+    public ResponseEntity<ProductResponseDTO> setProductVisibility(
+            @PathVariable Long id,
+            @Valid @RequestBody VisibilityRequest request) {
+        return ResponseEntity.ok(productService.setProductVisibility(id, request.getVisible()));
     }
 }
