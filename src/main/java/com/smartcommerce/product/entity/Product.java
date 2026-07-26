@@ -41,6 +41,7 @@ public class Product {
     // true solo si el producto fue ocultado por la cascada de su categoría.
     // Permite restaurar SOLO estos al volver a mostrar la categoría.
     @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
     private boolean hiddenByCategory = false;
 
     private String brand;
