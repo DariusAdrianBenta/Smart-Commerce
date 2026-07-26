@@ -1,6 +1,7 @@
 package com.smartcommerce.product.service;
 
 import com.smartcommerce.category.repository.CategoryRepository;
+import com.smartcommerce.exception.ProductNotFoundException;
 import com.smartcommerce.product.dto.response.ProductResponseDTO;
 import com.smartcommerce.product.entity.Product;
 import com.smartcommerce.product.entity.ProductStatus;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceVisibilityTest {
@@ -78,5 +80,28 @@ class ProductServiceVisibilityTest {
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
         verify(productRepository).save(captor.capture());
         assertThat(captor.getValue().getStatus()).isEqualTo(ProductStatus.OUT_OF_STOCK);
+    }
+
+    @Test
+    void getProductById_disabled_throwsNotFound() {
+        Product p = product(1L, 0, ProductStatus.DISABLED, false);
+        when(productRepository.findById(1L)).thenReturn(Optional.of(p));
+
+        assertThatThrownBy(() -> productService.getProductById(1L))
+                .isInstanceOf(ProductNotFoundException.class);
+
+        verify(productMapper, never()).toDTO(any(Product.class));
+    }
+
+    @Test
+    void getProductById_active_returnsDTO() {
+        Product p = product(1L, 10, ProductStatus.ACTIVE, false);
+        ProductResponseDTO dto = new ProductResponseDTO();
+        when(productRepository.findById(1L)).thenReturn(Optional.of(p));
+        when(productMapper.toDTO(p)).thenReturn(dto);
+
+        ProductResponseDTO result = productService.getProductById(1L);
+
+        assertThat(result).isSameAs(dto);
     }
 }

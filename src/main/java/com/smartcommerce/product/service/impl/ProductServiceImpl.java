@@ -59,6 +59,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO getProductById(Long id) {
         Product product = getProductOrThrow(id);
+        if (product.getStatus() == ProductStatus.DISABLED) {
+            throw new ProductNotFoundException(id);
+        }
         return productMapper.toDTO(product);
     }
 
