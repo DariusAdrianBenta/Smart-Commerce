@@ -4,12 +4,10 @@ import { formatPrice } from "../utils/formatPrice";
 import { useWishlist } from "../hooks/useWishlist";
 import { cartService } from "../services/cartService";
 import { HeartIcon, CartIcon } from "./icons";
-import ProductAdminActions from "./admin/ProductAdminActions";
 
 // Tarjeta de producto con corazón (favoritos) y botón de añadir al carrito.
 // Los botones van FUERA del Link para no anidar elementos interactivos.
-// `onChanged` lo usa el admin: se llama tras editar/borrar para recargar.
-export default function ProductCard({ product, onChanged }) {
+export default function ProductCard({ product }) {
   const { isFavorite, toggleFavorite } = useWishlist();
   const favorite = isFavorite(product.id);
   const [adding, setAdding] = useState(false);
@@ -38,8 +36,6 @@ export default function ProductCard({ product, onChanged }) {
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-md">
-      <ProductAdminActions product={product} onChanged={onChanged} />
-
       <button
         onClick={handleToggleFav}
         aria-label={favorite ? "Quitar de favoritos" : "Añadir a favoritos"}
