@@ -171,7 +171,7 @@ SmartCommerce/
     ├── src/test/                       # Tests
     ├── frontend/                       # Cliente web (React + Vite)
     │   └── src/  → api · services · context · hooks · components · pages · layouts · routes
-    ├── docs/                           # Documentación de diseño y planes
+    ├── docs/                           # Documentación técnica (PDF)
     ├── docker-compose.yml              # Orquestación de servicios
     └── pom.xml                         # Dependencias y build del backend
 ```

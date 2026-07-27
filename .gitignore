@@ -34,3 +34,9 @@ build/
 
 ### Git Bash crash dumps ###
 *.stackdump
+
+### Documentación interna de trabajo (specs, planes, notas) ###
+# Se mantiene en local pero no se publica. La única excepción es el PDF
+# de documentación técnica, que sí forma parte del repositorio.
+docs/*
+!docs/SmartCommerce-Documentacion-Tecnica.pdf
